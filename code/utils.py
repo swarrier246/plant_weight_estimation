@@ -111,4 +111,31 @@ def rgb2hsv(input_image):
     return hsv_image
 
 
-
+def segment_plant_area(input_image, mask):
+    '''
+    Segment only plant area and remove non-plant portion of masks
+    Args: 
+        input_image: input image
+        mask: output of generate_plant_mask_new function. Contains plant and some non-plant area
+    Returns:
+        Plant area mask of image
+    '''
+    # Threshold based on value channel from hsv image
+    h, s, v = cv2.split(cv2.cvtColor(input_image, cv2.COLOR_BGR2HSV))
+    img_mask = v < 160
+    img_mask = img_mask.astype(np.uint8)
+    mask = mask.astype(np.uint8)
+    final_mask = cv2.bitwise_and(img_mask, mask)
+    final_mask = final_mask.astype(np.uint8)
+    
+    # fill small holes
+    res = np.zeros(img_mask.shape, dtype=np.uint8)*255
+    res[img_mask] = 1
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15))
+    res_temp = cv2.morphologyEx(final_mask,cv2.MORPH_CLOSE, kernel)
+    res = cv2.morphologyEx(res_temp, cv2.MORPH_OPEN, kernel)
+    res = res==1
+    res = res.astype(np.uint8)
+    res_dil = cv2.dilate(res,kernel,iterations=1)
+    
+    return res_dil
