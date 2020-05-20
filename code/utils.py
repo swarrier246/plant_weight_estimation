@@ -2,8 +2,10 @@
 Utilities for the project
 '''
 import cv2
+from PIL import Image
 import numpy as np
 from plantcv import plantcv as pcv
+import pandas as pd
 
 
 
@@ -139,3 +141,40 @@ def segment_plant_area(input_image, mask):
     res_dil = cv2.dilate(res,kernel,iterations=1)
     
     return res_dil
+
+def load_image(image_ID):
+    '''
+    Extract image filenames for all images corresponding to a plant
+    Args:
+        image_ID = cell from raw_data containing Image ID info
+    Returns:
+        plant_images: Image(s) corresponding to the plant
+    '''
+    if (isinstance(image_ID, int) == False):
+        filename = image_ID.split(" ")
+        #print(filename)
+        # load the image
+        pil_image = Image.open('../lettuce_images/jpg_images/IMG_{}.jpg'.format(filename[0]))
+    else:
+        pil_image = Image.open('../lettuce_images/jpg_images/IMG_{}.jpg'.format(image_ID))
+    
+    # resize it
+    new_size = pil_image.size
+    new_size = [int(x*0.25) for x in new_size]
+    resized_image = pil_image.resize(new_size, resample=Image.LANCZOS)
+    img = np.asarray(resized_image)
+    
+    plant_images = []
+    plant_images.append(img)
+    
+    if ((isinstance(image_ID, int) == False) and len(filename) > 1):
+        pil_image2 = Image.open('../lettuce_images/jpg_images/IMG_{}.jpg'.format(filename[2]))
+        new_size = pil_image2.size
+        new_size = [int(x*0.25) for x in new_size]
+        resized_image = pil_image.resize(new_size, resample=Image.LANCZOS)
+        img2 = np.asarray(resized_image)
+        plant_images.append(img2)
+    
+    return plant_images
+       
+    
